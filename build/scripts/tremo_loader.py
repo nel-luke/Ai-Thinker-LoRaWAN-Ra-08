@@ -74,12 +74,14 @@ class TremoLoader(object):
 
     def hw_reset(self, mode=0):
         if mode:
-            self.ser.setDTR(True)  # gpio2 1
-            self.ser.setRTS(True)  # rst 0
+            self.ser.setRTS(True)   # RST 0
+            self.ser.setDTR(True)   # GPIO2 0
             time.sleep(0.1)
-            self.ser.setRTS(False)  # rst 1
+            self.ser.setDTR(False)  # GPIO2 1
             time.sleep(0.1)
-            self.ser.setDTR(False)  # gpio2 0
+            self.ser.setRTS(False)  # RST 1
+            time.sleep(0.1)
+            self.ser.setDTR(True)   # GPIO2 0
         else:
             self.ser.setRTS(True)
             time.sleep(0.1)
@@ -151,6 +153,7 @@ class TremoLoader(object):
         ret, _ = self.wait_response()
         if ret != 0:
             raise CmdException("Reboot error")
+        self.hw_reset(0)
 
     def read_sn(self):
         self.requeset(self.CMD_SN)

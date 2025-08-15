@@ -9,6 +9,8 @@ export HOST_ARCH := Cortex-M4F
 
 ifeq ($(shell uname), Linux)
 export EXECUTABLE_SUFFIX :=
+else ifeq ($(shell uname), Darwin)
+export EXECUTABLE_SUFFIX :=
 else
 export EXECUTABLE_SUFFIX := .exe
 endif
@@ -67,7 +69,7 @@ $(foreach src,$(CXX_SOURCES),$(eval $(call BUILD_CXX_PROCESS,$(PROJECT),$(src)))
 
 # flash settings
 TREMO_LOADER := $(SCRIPTS_PATH)/tremo_loader.py
-SERIAL_PORT        ?= /dev/ttyUSB0
+SERIAL_PORT        ?= /dev/tty.usbserial-A50285BI
 SERIAL_BAUDRATE    ?= 921600
 $(PROJECT)_ADDRESS ?= 0x08000000
 
@@ -95,6 +97,9 @@ $(OUT_DIR)/$(PROJECT)$(LINK_OUTPUT_SUFFIX): $(addprefix $(OUT_DIR)/,$(notdir $($
 flash: $(OUT_DIR)/$(PROJECT)$(BIN_OUTPUT_SUFFIX) $(TREMO_LOADER)
 	$(VIEW)echo Start flashing...
 	$(VIEW)$(PYTHON) $(TREMO_LOADER) -p $(SERIAL_PORT) -b $(SERIAL_BAUDRATE) flash $($(PROJECT)_ADDRESS) $(OUT_DIR)/$(PROJECT)$(BIN_OUTPUT_SUFFIX)
+
+monitor:
+	$(VIEW)picocom -b 115200 --lower-rts --lower-dtr $(SERIAL_PORT)
 	
 clean:
 	$(VIEW)echo Cleaning...
