@@ -6,6 +6,9 @@
 #include "tremo_gpio.h"
 #include "tremo_rcc.h"
 
+#include <timer.h>
+#include <rtc-board.h>
+
 void jumpToApp(int addr)
 {
     __asm("LDR SP, [R0]");
@@ -15,20 +18,20 @@ void jumpToApp(int addr)
 //bootloader mode select, just an example
 int boot_mode_sel(void)
 {
-    uint8_t input_value = 0;
+//    uint8_t input_value = 0;
     
-    input_value = gpio_read(BOOT_MODE_GPIOX, BOOT_MODE_GPIO_PIN);
-    if (BOOT_MODE_NO_JUMP == input_value) {
-        delay_ms(1); //debounce
-        input_value = gpio_read(BOOT_MODE_GPIOX, BOOT_MODE_GPIO_PIN);
-        if(BOOT_MODE_NO_JUMP == input_value)
-            return BOOT_MODE_NO_JUMP;
-    } else {
-        delay_ms(1); //debounce
-        input_value = gpio_read(BOOT_MODE_GPIOX, BOOT_MODE_GPIO_PIN);
-        if(BOOT_MODE_JUMP2APP == input_value)
-            return BOOT_MODE_JUMP2APP;
-    }
+//    input_value = gpio_read(BOOT_MODE_GPIOX, BOOT_MODE_GPIO_PIN);
+//    if (BOOT_MODE_NO_JUMP == input_value) {
+//        delay_ms(1); //debounce
+//        input_value = gpio_read(BOOT_MODE_GPIOX, BOOT_MODE_GPIO_PIN);
+//        if(BOOT_MODE_NO_JUMP == input_value)
+//            return BOOT_MODE_NO_JUMP;
+//    } else {
+//        delay_ms(1); //debounce
+//        input_value = gpio_read(BOOT_MODE_GPIOX, BOOT_MODE_GPIO_PIN);
+//        if(BOOT_MODE_JUMP2APP == input_value)
+//            return BOOT_MODE_JUMP2APP;
+//    }
     
     return BOOT_MODE_NO_JUMP;
 }
@@ -76,6 +79,9 @@ int main(void)
     rcc_enable_peripheral_clk(RCC_PERIPHERAL_LORA, true);
 
     uart_log_init();
+
+    delay_ms(2000);
+    printf("Hello world!\r\n");
 	
     RtcInit();
 

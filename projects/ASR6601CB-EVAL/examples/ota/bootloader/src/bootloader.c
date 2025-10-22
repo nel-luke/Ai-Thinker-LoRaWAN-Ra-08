@@ -169,6 +169,7 @@ int get_request_from_lora(loader_req_t *req)
 
     //parse cmd
     req->cmd = g_bootloader_cmd[BOOTLOADER_POS_CMD];
+    printf("Command is 0x%02x\r\n", req->cmd);
     //parse len
     len_lsb = g_bootloader_cmd[BOOTLOADER_POS_LEN_LSB];
     len_msb = g_bootloader_cmd[BOOTLOADER_POS_LEN_MSB];
@@ -177,6 +178,8 @@ int get_request_from_lora(loader_req_t *req)
     //check len
     if(req->data_len>BOOTLOADER_MAX_CMD_SIZE)
         return BOOTLOADER_STATUS_ERR_SIZE;
+
+    printf("Datalen is %d\r\n", req->data_len);
     
     //read data
     if(req->data_len){
@@ -185,12 +188,15 @@ int get_request_from_lora(loader_req_t *req)
     }
     
     //check cmd end
-    if(g_bootloader_cmd[req->data_len+BOOTLOADER_MIN_CMD_SIZE-1] != BOOTLOADER_SYMBOL_CMD_END)
+    if(g_bootloader_cmd[req->data_len+BOOTLOADER_MIN_CMD_SIZE-1] != BOOTLOADER_SYMBOL_CMD_END) {
+        printf("Expected 0x%02x, got 0x%02x\r\n", BOOTLOADER_SYMBOL_CMD_END, g_bootloader_cmd[req->data_len+BOOTLOADER_MIN_CMD_SIZE-1]);
         return BOOTLOADER_STATUS_ERR_DATA;
-    
+    }
+
     //checksum
     uint32_t crc32_value = crc32((uint8_t *)g_bootloader_cmd, 4+req->data_len);
     uint32_t checksum = *(uint32_t *)(g_bootloader_cmd+4+req->data_len);
+    printf("Checksum is 0x%08lx, but should be 0x%08lx\r\n", checksum, crc32_value);
     if(checksum != crc32_value)
         return BOOTLOADER_STATUS_ERR_CHECKSUM;
     
@@ -209,6 +215,10 @@ void send_response_to_lora(loader_res_t *res)
     g_bootloader_cmd[res->data_len+BOOTLOADER_MIN_CMD_SIZE-1] = BOOTLOADER_SYMBOL_CMD_END;
     
 	delay_ms(5);
+    for (int i = 0; i < res->data_len+BOOTLOADER_MIN_CMD_SIZE; i++) {
+        printf("0x%02x, ", g_bootloader_cmd[i]);
+    }
+    printf("\r\n");
 	lora_tx(g_bootloader_cmd, res->data_len+BOOTLOADER_MIN_CMD_SIZE);	
 }
 
@@ -528,6 +538,9 @@ void boot_handle_cmd(void)
 			
         //get requeset
         ret = get_request_from_lora((loader_req_t *)&g_request);
+        if (ret >= 0)
+            printf("Return code is %d\r\n", ret);
+
         if(ret!=0) {
             boot_buffer_clear();
             continue;
@@ -545,8 +558,10 @@ void boot_handle_cmd(void)
             }
         }
         
-        if(i >= BOOT_CMD_TABLE_SIZE)
+        if(i >= BOOT_CMD_TABLE_SIZE) {
             g_response.status = BOOTLOADER_STATUS_UNKNOWN_CMD;
+            printf("Unknown command\r\n");
+        }
         
         //send response
         if(ret == RES_UNSENT) {

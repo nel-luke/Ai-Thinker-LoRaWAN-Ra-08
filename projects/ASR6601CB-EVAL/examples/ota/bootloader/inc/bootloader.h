@@ -1,6 +1,8 @@
 #ifndef __BOOTLOADER_H_
 #define __BOOTLOADER_H_
 
+#include <stdint.h>
+
 #define CM4_IRQ_VECT_BASE           0xE000ED08
 #define CM4_IRQ_EN                  0xE000E100
 #define CM4_IRQ_CLR                 0xE000E180
